@@ -1,58 +1,25 @@
-name: CI Pipeline.
+name: Gitleaks Scan
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - '*.md'
-      - 'LICENSE'
-      - 'monitoring/grafana-dashboard.json'
-      - 'screenshots/**'
-    tags-ignore:
-      - '*'
   pull_request:
-    paths-ignore:
-      - '*.md'
-      - 'LICENSE'
-      - 'data/static/i18n/*.json'
-      - 'frontend/src/assets/i18n/*.json'
+  workflow_dispatch:
 
 jobs:
-  build-and-test:
+  scan:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [22.x]
 
     steps:
+      # Checkout YOUR repository (Ooladipupo/OWASP-juice-shop)
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          fetch-depth: 0   # ensures .git folder is included
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-      - name: Build application
-        run: npm run build
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      # Run Gitleaks inside the repo directory
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-node-appOla:latest .
-
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-node-appOla:latest
+          args: detect --source="." --verbose
