@@ -59,6 +59,8 @@ jobs:
         uses: ajinabraham/njsscan-action@master
         with:
          args: '.'
+      - name: Semgrep x semgrep-rules-manager
+        uses: iosifache/semgrep-rules-manager@release
         
 
 #      - uses: gitleaks/gitleaks-action@v2
