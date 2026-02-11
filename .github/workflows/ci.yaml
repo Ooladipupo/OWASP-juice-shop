@@ -59,8 +59,13 @@ jobs:
         uses: ajinabraham/njsscan-action@master
         with:
          args: '.'
-      - name: Semgrep x semgrep-rules-manager
-        uses: iosifache/semgrep-rules-manager@release
+
+      - name: Run Semgrep (Full Security Ruleset)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: "p/ci"   # full security + correctness + secrets
+          generateSarif: "true"
+
         
 
 #      - uses: gitleaks/gitleaks-action@v2
