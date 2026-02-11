@@ -69,6 +69,15 @@ jobs:
         with:
           args: detect --source="juice-shop" --verbose
           working-directory: juice-shop
+
+      - uses: gitleaks/gitleaks-action@v2
+        with:
+          working-directory: juice-shop
+          args: detect --source="." --verbose
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+
     
 
 #      - name: Log in to Docker Hub
