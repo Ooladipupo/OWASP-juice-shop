@@ -68,6 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: detect --source="juice-shop" --verbose
+          working-directory: juice-shop
     
 
 #      - name: Log in to Docker Hub
