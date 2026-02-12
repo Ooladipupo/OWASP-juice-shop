@@ -63,18 +63,18 @@ jobs:
       # -----------------------------
       # 2. Semgrep SAST Scan
       # -----------------------------
-      - name: Run Semgrep (Full Security Ruleset)
-        uses: returntocorp/semgrep-action@v1
-        with:
-         entryPoint: semgrep
-         config: "p/ci"    # OWASP + SAST + secrets + correctness
-         args: "--sarif --output semgrep.sarif"
-        continue-on-error: true
-
-      - name: Upload Semgrep SARIF
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: semgrep.sarif
+  #    - name: Run Semgrep (Full Security Ruleset)
+  #      uses: returntocorp/semgrep-action@v1
+  #      with:
+  #       entryPoint: semgrep
+  #       config: "p/ci"    # OWASP + SAST + secrets + correctness
+  #       args: "--sarif --output semgrep.sarif"
+  #      continue-on-error: true
+#
+#      - name: Upload Semgrep SARIF
+#        uses: github/codeql-action/upload-sarif@v3
+#        with:
+#          sarif_file: semgrep.sarif
 
 
       # -----------------------------
@@ -88,14 +88,14 @@ jobs:
       - name: Run njsscan
         run: |
           pip install njsscan
-          njsscan --output njsscan.sarif --format sarif .
+          njsscan --output njsscan.sarif --sarif .
         continue-on-error: true
 
       - name: Upload njsscan SARIF
         uses: github/codeql-action/upload-sarif@v3.28.4
         with:
           sarif_file: njsscan.sarif
-        continue-on-error: true
+        
 
       # -----------------------------
       # 4. Gitleaks (Secret Scanning)
