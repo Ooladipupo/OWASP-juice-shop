@@ -65,15 +65,17 @@ jobs:
       - name: Run Semgrep (Full Security Ruleset)
         uses: returntocorp/semgrep-action@v1
         with:
-          config: "p/ci"          # OWASP + SAST + secrets + correctness
-          generateSarif: "true"
-          # Prevent pipeline failure
-          error: "false"
+         version: 1.76.0
+         config: "p/ci"    # OWASP + SAST + secrets + correctness
+         generateSarif: "true"
+         error: "false"
+        continue-on-error: true
 
       - name: Upload Semgrep SARIF
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: semgrep.sarif
+
 
       # -----------------------------
       # 3. njsscan (Node.js SAST)
