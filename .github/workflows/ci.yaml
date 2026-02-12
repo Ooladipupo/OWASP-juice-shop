@@ -65,10 +65,9 @@ jobs:
       - name: Run Semgrep (Full Security Ruleset)
         uses: returntocorp/semgrep-action@v1
         with:
-         version: 1.76.0
+         version: latest
          config: "p/ci"    # OWASP + SAST + secrets + correctness
-         generateSarif: "true"
-         error: "false"
+         args: "--sarif --output semgrep.sarif"
         continue-on-error: true
 
       - name: Upload Semgrep SARIF
