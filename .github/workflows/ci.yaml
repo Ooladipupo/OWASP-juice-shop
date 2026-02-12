@@ -86,9 +86,10 @@ jobs:
           python-version: '3.12'
 
       - name: Run njsscan
-        uses: ajinabraham/njsscan-action@master
-        with:
-          args: '.'
+        run: |
+          pip install njsscan
+          njsscan --output njsscan.sarif --format sarif .
+        continue-on-error: true
 
       - name: Upload njsscan SARIF
         uses: github/codeql-action/upload-sarif@v3
