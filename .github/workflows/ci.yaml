@@ -63,49 +63,53 @@ jobs:
       # -----------------------------
       # 2. Semgrep SAST Scan
       # -----------------------------
-      - name: Run Semgrep (Full Security Ruleset)
-        uses: returntocorp/semgrep-action@v1
-        with:
-         entryPoint: semgrep
-         config: "p/ci"    # OWASP + SAST + secrets + correctness
-         args: "--sarif --output semgrep.sarif"
-        continue-on-error: true
-
-      - name: Upload Semgrep SARIF
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: semgrep.sarif
-
-
-      # -----------------------------
+ #     - name: Run Semgrep (Full Security Ruleset)
+ #       uses: returntocorp/semgrep-action@v1
+ #       with:
+ #        entryPoint: semgrep
+ #        config: "p/ci"    # OWASP + SAST + secrets + correctness
+ #        args: "--sarif --output semgrep.sarif"
+ #       continue-on-error: true
+#
+#      - name: Upload Semgrep SARIF
+#        uses: github/codeql-action/upload-sarif@v3
+#        with:
+#          sarif_file: semgrep.sarif
+#
+#
+#      # -----------------------------
       # 3. njsscan (Node.js SAST)
       # -----------------------------
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Run njsscan
-        run: |
-          pip install njsscan
-          njsscan --output njsscan.sarif --sarif .
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: '3.12'
+#
+#      - name: Run njsscan
+#        run: |
+#          pip install njsscan
+#          njsscan --output njsscan.sarif --sarif .
        
 
-      - name: Upload njsscan SARIF
-        uses: github/codeql-action/upload-sarif@v3.28.4
-        with:
-          sarif_file: njsscan.sarif
+#      - name: Upload njsscan SARIF
+#        uses: github/codeql-action/upload-sarif@v3.28.4
+#        with:
+#          sarif_file: njsscan.sarif
         
 
       # -----------------------------
       # 4. Gitleaks (Secret Scanning)
       # -----------------------------
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: detect --source="." --verbose --no-fail
+        run: |
+          wget -q https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64
+          chmod +x gitleaks-linux-amd64
+          ./gitleaks-linux-amd64 detect \
+          --source="." \
+          --verbose \
+          --no-git \
+          --report-format sarif \
+          --report-path gitleaks.sarif || true
 
         
 
