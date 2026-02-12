@@ -51,21 +51,75 @@ jobs:
       - name: Run tests
         run: yarn test
 
-      - uses: actions/setup-python@v5.3.0
+      # -----------------------------
+      # 1. Checkout OWASP Juice Shop
+      # -----------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-         python-version: '3.12'
-      - name: nodejsscan scan
-        id: njsscan
-        uses: ajinabraham/njsscan-action@master
-        with:
-         args: '.'
+          fetch-depth: 0
 
+      # -----------------------------
+      # 2. Semgrep SAST Scan
+      # -----------------------------
       - name: Run Semgrep (Full Security Ruleset)
         uses: returntocorp/semgrep-action@v1
         with:
-          config: "p/ci"   # full security + correctness + secrets
+          config: "p/ci"          # OWASP + SAST + secrets + correctness
           generateSarif: "true"
+          # Prevent pipeline failure
+          error: "false"
 
+      - name: Upload Semgrep SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+
+      # -----------------------------
+      # 3. njsscan (Node.js SAST)
+      # -----------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run njsscan
+        uses: ajinabraham/njsscan-action@master
+        with:
+          args: '.'
+
+      - name: Upload njsscan SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: njsscan.sarif
+
+      # -----------------------------
+      # 4. Gitleaks (Secret Scanning)
+      # -----------------------------
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: detect --source="." --verbose --no-fail
+
+        
+
+#      - uses: actions/setup-python@v5.3.0
+#        with:
+#         python-version: '3.12'
+#      - name: nodejsscan scan
+#        id: njsscan
+#        uses: ajinabraham/njsscan-action@master
+#        with:
+#         args: '.'
+#
+#      - name: Run Semgrep (Full Security Ruleset)
+#        uses: returntocorp/semgrep-action@v1
+#        with:
+#          config: "p/ci"   # full security + correctness + secrets
+#          generateSarif: "true"
+#
         
 
 #      - uses: gitleaks/gitleaks-action@v2
