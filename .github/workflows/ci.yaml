@@ -102,14 +102,16 @@ jobs:
       # -----------------------------
       - name: Run Gitleaks
         run: |
-          wget -q https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64
-          chmod +x gitleaks-linux-amd64
-          ./gitleaks-linux-amd64 detect \
-          --source="." \
-          --verbose \
-          --no-git \
-          --report-format sarif \
-          --report-path gitleaks.sarif || true
+          curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
+          tar -xzf gitleaks.tar.gz
+          chmod +x gitleaks
+          ./gitleaks detect \
+           --source="." \
+           --verbose \
+           --no-git \
+           --report-format sarif \
+           --report-path gitleaks.sarif || true
+
 
         
 
