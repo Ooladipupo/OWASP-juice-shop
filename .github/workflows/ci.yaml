@@ -71,13 +71,13 @@ jobs:
  #        args: "--sarif --output semgrep.sarif"
  #       continue-on-error: true
 
-      - name: Run Semgrep (Full Security Ruleset)
-        uses: returntocorp/semgrep-action@v1
-        with:
-          entryPoint: semgrep
-          config: "p/ci"
-          args: "--sarif --output semgrep.sarif"
-        continue-on-error: true
+#      - name: Run Semgrep (Full Security Ruleset)
+#        uses: returntocorp/semgrep-action@v1
+#        with:
+#          entryPoint: semgrep
+#          config: "p/ci"
+#          args: "--sarif --output semgrep.sarif"
+#        continue-on-error: true
 
 
  
@@ -111,17 +111,17 @@ jobs:
       # -----------------------------
       # 4. Gitleaks (Secret Scanning)
       # -----------------------------
- #     - name: Run Gitleaks
- #       run: |
- #         curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
- #         tar -xzf gitleaks.tar.gz
- #         chmod +x gitleaks
- #         ./gitleaks detect \
- #          --source="." \
- #          --verbose \
- #          --no-git \
- #          --report-format sarif \
- #          --report-path gitleaks.sarif || true
+      - name: Run Gitleaks
+        run: |
+          curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
+          tar -xzf gitleaks.tar.gz
+          chmod +x gitleaks
+          ./gitleaks detect \
+           --source="." \
+           --verbose \
+           --no-git \
+           --report-format sarif \
+           --report-path gitleaks.sarif || true
 
 
         
@@ -166,3 +166,10 @@ jobs:
 #       #run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-node-appola:latest
 #        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/$APP_NAME:$APP_VERSION
 
+      - name: Upload to DefectDojo
+        run: python your_script.py
+        env:
+         DD_URL: ${{ secrets.DD_URL }}
+         DD_API_KEY: ${{ secrets.DEFECTDOJO_API_KEY }}
+
+        
