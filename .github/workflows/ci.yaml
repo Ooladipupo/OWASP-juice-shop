@@ -70,6 +70,17 @@ jobs:
  #        config: "p/ci"    # OWASP + SAST + secrets + correctness
  #        args: "--sarif --output semgrep.sarif"
  #       continue-on-error: true
+
+      - name: Run Semgrep (Full Security Ruleset)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          entryPoint: semgrep
+          config: "p/ci"
+          args: "--sarif --output semgrep.sarif"
+        continue-on-error: true
+
+
+ 
 #
 #      - name: Upload Semgrep SARIF
 #        uses: github/codeql-action/upload-sarif@v3
@@ -100,17 +111,17 @@ jobs:
       # -----------------------------
       # 4. Gitleaks (Secret Scanning)
       # -----------------------------
-      - name: Run Gitleaks
-        run: |
-          curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
-          tar -xzf gitleaks.tar.gz
-          chmod +x gitleaks
-          ./gitleaks detect \
-           --source="." \
-           --verbose \
-           --no-git \
-           --report-format sarif \
-           --report-path gitleaks.sarif || true
+ #     - name: Run Gitleaks
+ #       run: |
+ #         curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
+ #         tar -xzf gitleaks.tar.gz
+ #         chmod +x gitleaks
+ #         ./gitleaks detect \
+ #          --source="." \
+ #          --verbose \
+ #          --no-git \
+ #          --report-format sarif \
+ #          --report-path gitleaks.sarif || true
 
 
         
