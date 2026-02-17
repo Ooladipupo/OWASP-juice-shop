@@ -4,16 +4,12 @@ on:
   push:
     branches: [ master ]
 
-concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -46,4 +42,19 @@ jobs:
           path: ~/.semgrep
           key: semgrep-rules
 
-   
+      - name: Run security pipeline (Gitleaks, njsscan, Semgrep)
+        run: python scan_pipeline/main.py
+        env:
+          DD_URL: ${{ secrets.DD_URL }}
+          DD_API_KEY: ${{ secrets.DEFECTDOJO_API_KEY }}
+          DD_PRODUCT_ID: ${{ secrets.DD_PRODUCT_ID }}
+          DD_ENGAGEMENT_ID: ${{ secrets.DD_ENGAGEMENT_ID }}
+
+      - name: Upload scan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-reports
+          path: |
+            gitleaks.sarif
+            njsscan.sarif
+            semgrep.sarif
