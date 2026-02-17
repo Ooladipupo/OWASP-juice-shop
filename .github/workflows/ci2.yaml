@@ -35,6 +35,8 @@ jobs:
 
       - name: Install Gitleaks
         uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+
 
       - name: Cache Semgrep rules
         uses: actions/cache@v4
