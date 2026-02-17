@@ -84,6 +84,10 @@ jobs:
           publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
         continue-on-error: true
 
+
+      - name: Verify Semgrep SARIF exists
+        run: test -f semgrep.sarif || echo "SARIF not found"
+
       - name: Upload Semgrep SARIF report
         uses: actions/upload-artifact@v4
         with:
@@ -93,5 +97,3 @@ jobs:
       - name: List workspace files
         run: ls -R .
 
-      - name: Find SARIF files
-        run: find . -name "*.sarif*" -type f
