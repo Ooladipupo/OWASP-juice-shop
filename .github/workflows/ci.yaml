@@ -1,175 +1,60 @@
-name: CI Pipeline.
+name: Build and Scan
 
 on:
   push:
-    branches:
-      - master
-      - main
-    paths-ignore:
-      - '*.md'
-      - 'LICENSE'
-      - 'monitoring/grafana-dashboard.json'
-      - 'screenshots/**'
-    tags-ignore:
-      - '*'
-  pull_request:
-    paths-ignore:
-      - '*.md'
-      - 'LICENSE'
-      - 'data/static/i18n/*.json'
-      - 'frontend/src/assets/i18n/*.json'
-
-env:
-  APP_NAME: my-node-appola
-  APP_VERSION: latest
+    branches: [ main ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [22]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22
           cache: 'yarn'
-          
-      - name: Install Yarn Classic
-        run: npm install -g yarn@1
-
+          cache-dependency-path: '**/yarn.lock'
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run tests
-        run: |
-         yarn test --watch=false --browsers=ChromeHeadlessCI || yarn test --watch=false --browsers=ChromeHeadlessCI
-      
-      # -----------------------------
-      # 1. Checkout OWASP Juice Shop
-      # -----------------------------
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          fetch-depth: 0
+          python-version: '3.12'
+          cache: 'pip'
 
-      # -----------------------------
-      # 2. Semgrep SAST Scan
-      # -----------------------------
- #     - name: Run Semgrep (Full Security Ruleset)
- #       uses: returntocorp/semgrep-action@v1
- #       with:
- #        entryPoint: semgrep
- #        config: "p/ci"    # OWASP + SAST + secrets + correctness
- #        args: "--sarif --output semgrep.sarif"
- #       continue-on-error: true
+      - name: Install Python deps
+        run: pip install -r requirements.txt
 
-#      - name: Run Semgrep (Full Security Ruleset)
-#        uses: returntocorp/semgrep-action@v1
-#        with:
-#          entryPoint: semgrep
-#          config: "p/ci"
-#          args: "--sarif --output semgrep.sarif"
-#        continue-on-error: true
+      - name: Install Gitleaks
+        uses: gitleaks/gitleaks-action@v2
 
+      - name: Cache Semgrep rules
+        uses: actions/cache@v4
+        with:
+          path: ~/.semgrep
+          key: semgrep-rules
 
- 
-#
-#      - name: Upload Semgrep SARIF
-#        uses: github/codeql-action/upload-sarif@v3
-#        with:
-#          sarif_file: semgrep.sarif
-#
-#
-#      # -----------------------------
-      # 3. njsscan (Node.js SAST)
-      # -----------------------------
-#      - name: Set up Python
-#        uses: actions/setup-python@v5
-#        with:
-#          python-version: '3.12'
-#
-#      - name: Run njsscan
-#        run: |
-#          pip install njsscan
-#          njsscan --output njsscan.sarif --sarif .
-       
-
-#      - name: Upload njsscan SARIF
-#        uses: github/codeql-action/upload-sarif@v3.28.4
-#        with:
-#          sarif_file: njsscan.sarif
-        
-
-      # -----------------------------
-      # 4. Gitleaks (Secret Scanning)
-      # -----------------------------
-      - name: Run Gitleaks
-        run: |
-          curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
-          tar -xzf gitleaks.tar.gz
-          chmod +x gitleaks
-          ./gitleaks detect \
-           --source="." \
-           --verbose \
-           --no-git \
-           --report-format sarif \
-           --report-path gitleaks.sarif || true
-
-
-        
-
-#      - uses: actions/setup-python@v5.3.0
-#        with:
-#         python-version: '3.12'
-#      - name: nodejsscan scan
-#        id: njsscan
-#        uses: ajinabraham/njsscan-action@master
-#        with:
-#         args: '.'
-#
-#      - name: Run Semgrep (Full Security Ruleset)
-#        uses: returntocorp/semgrep-action@v1
-#        with:
-#          config: "p/ci"   # full security + correctness + secrets
-#          generateSarif: "true"
-#
-        
-
-#      - uses: gitleaks/gitleaks-action@v2
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          args: detect --source="." --verbose --no-fail
-
-        
-
-    
-
-#      - name: Log in to Docker Hub
-#        uses: docker/login-action@v3
-#        with:
-#          username: ${{ secrets.DOCKERHUB_USERNAME }}
-#          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-#      - name: Build Docker image
-#        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/$APP_NAME:$APP_VERSION .
-
-#      - name: Push Docker image
-#       #run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-node-appola:latest
-#        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/$APP_NAME:$APP_VERSION
-
-      - name: Upload to DefectDojo
-        run: python your_script.py
+      - name: Run security pipeline (Gitleaks, njsscan, Semgrep)
+        run: python scan_pipeline/main.py
         env:
-         DD_URL: ${{ secrets.DD_URL }}
-         DD_API_KEY: ${{ secrets.DEFECTDOJO_API_KEY }}
+          DD_URL: ${{ secrets.DD_URL }}
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_PRODUCT_ID: ${{ secrets.DD_PRODUCT_ID }}
+          DD_ENGAGEMENT_ID: ${{ secrets.DD_ENGAGEMENT_ID }}
 
-        
+      - name: Upload scan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-reports
+          path: |
+            gitleaks.sarif
+            njsscan.sarif
+            semgrep.sarif
