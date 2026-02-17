@@ -91,3 +91,6 @@ jobs:
           
       - name: List workspace files
         run: ls -R .
+
+      - name: Find SARIF files
+        run: find . -name "*.sarif*" -type f
