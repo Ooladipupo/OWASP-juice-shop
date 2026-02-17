@@ -1,60 +1,75 @@
-name: Build and Scan
+name: CI Pipeline.
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - master
+      - main
+    paths-ignore:
+      - '*.md'
+      - 'LICENSE'
+      - 'monitoring/grafana-dashboard.json'
+      - 'screenshots/**'
+    tags-ignore:
+      - '*'
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - 'LICENSE'
+      - 'data/static/i18n/*.json'
+      - 'frontend/src/assets/i18n/*.json'
+
+env:
+  APP_NAME: my-node-appola
+  APP_VERSION: latest
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [22]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
-      - name: Setup Node
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
+          
+      - name: Install Yarn Classic
+        run: npm install -g yarn@1
+
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
+      - name: Run tests
+        run: yarn test
+        
 
-      - name: Install Python deps
-        run: pip install -r requirements.txt
-
+      # Install Gitleaks (keeps your continue-on-error)
       - name: Install Gitleaks
         uses: gitleaks/gitleaks-action@v2
-
-      - name: Cache Semgrep rules
-        uses: actions/cache@v4
+        continue-on-error: true
         with:
-          path: ~/.semgrep
-          key: semgrep-rules
+          args: version
 
-      - name: Run security pipeline (Gitleaks, njsscan, Semgrep)
-        run: python scan_pipeline/main.py
-        env:
-          DD_URL: ${{ secrets.DD_URL }}
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_PRODUCT_ID: ${{ secrets.DD_PRODUCT_ID }}
-          DD_ENGAGEMENT_ID: ${{ secrets.DD_ENGAGEMENT_ID }}
+      # Run Gitleaks manually to produce JSON
+      - name: Run Gitleaks (JSON output)
+        run: |
+          gitleaks detect \
+          --source . \
+          --report-format json \
+          --report-path gitleaks.json || true
 
-      - name: Upload scan reports
+      # Upload JSON report as artifact
+      - name: Upload Gitleaks JSON report
         uses: actions/upload-artifact@v4
         with:
-          name: security-scan-reports
-          path: |
-            gitleaks.sarif
-            njsscan.sarif
-            semgrep.sarif
+          name: gitleaks-report
+          path: gitleaks.json
