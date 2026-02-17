@@ -55,6 +55,6 @@ jobs:
         with:
           name: security-scan-reports
           path: |
-            gitleaks.sarif
+            gitleaks.json
             njsscan.sarif
             semgrep.sarif
