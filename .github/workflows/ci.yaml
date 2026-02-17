@@ -88,3 +88,6 @@ jobs:
         with:
           name: semgrep-report
           path: semgrep.sarif
+          
+      - name: List workspace files
+        run: ls -R .
