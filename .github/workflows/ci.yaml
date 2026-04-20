@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+      - feature
     paths-ignore:
       - '*.md'
       - 'LICENSE'
