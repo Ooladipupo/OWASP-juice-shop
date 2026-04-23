@@ -60,18 +60,13 @@ jobs:
         with:
           args: version
 
-      - name: Create gitleaks directory
-        run: mkdir -p gitleaks
-
-
-      - name: Run Gitleaks
+      # Run Gitleaks manually to produce JSON
+      - name: Run Gitleaks (JSON output)
         run: |
-          mkdir -p gitleaks
           gitleaks detect \
-            --source . \
-            --report-format json \
-            --report-path gitleaks/gitleaks-report.json
-            --exit-code 0
+          --source . \
+          --report-format json \
+          --report-path gitleaks-results.sarif || true
 
       - name: Upload to DefectDojo
         run: |
