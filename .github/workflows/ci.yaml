@@ -66,14 +66,14 @@ jobs:
           gitleaks detect \
           --source . \
           --report-format json \
-          --report-path gitleaks.json || true
+          --report-path gitleaks-results.sarif || true
 
       # Upload JSON report as artifact
       - name: Upload Gitleaks JSON report
         uses: actions/upload-artifact@v4
         with:
           name: gitleaks-report
-          path: gitleaks.json
+          path: gitleaks-results.sarif
 
 
       # SEMGREP SCAN
