@@ -60,20 +60,24 @@ jobs:
         with:
           args: version
 
-      # Run Gitleaks manually to produce JSON
-      - name: Run Gitleaks (JSON output)
-        run: |
-          gitleaks detect \
-          --source . \
-          --report-format json \
-          --report-path gitleaks/gitleaks-report.json
 
-      # Upload JSON report as artifact
-      - name: Upload Gitleaks JSON report
-        uses: actions/upload-artifact@v4
-        with:
-          name: gitleaks-report
-          path: gitleaks-results.sarif
+      - name: Run Gitleaks
+        run: |
+          mkdir -p gitleaks
+          gitleaks detect \
+            --source . \
+            --report-format json \
+            --report-path gitleaks/gitleaks-report.json
+
+      - name: Upload to DefectDojo
+        run: |
+          curl -X POST "https://demo.defectdojo.org/api/v2/import-scan/" \
+            -H "Authorization: Token $DEFECTDOJO_API_KEY" \
+            -F "scan_type=Gitleaks Scan" \
+            -F "file=@gitleaks/gitleaks-report.json" \
+            -F "engagement= 25
+
+
 
 
       # SEMGREP SCAN
