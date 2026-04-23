@@ -16,7 +16,7 @@ data = {
 }
 
 files = {
-    'file': open('gitleaks.json', 'rb')
+    'file': open('gitleaks-results.sarif', 'rb')
 
 }
 
