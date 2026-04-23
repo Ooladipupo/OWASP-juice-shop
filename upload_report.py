@@ -12,7 +12,7 @@ data = {
     'verified': True,
     'scan_type': 'Gitleads Scan',
     'minimum_severity': 'Low',
-    'engagement': 20
+    'engagement': 25
 }
 
 files = {
