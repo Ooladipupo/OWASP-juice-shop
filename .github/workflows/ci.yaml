@@ -60,6 +60,9 @@ jobs:
         with:
           args: version
 
+      - name: Create gitleaks directory
+        run: mkdir -p gitleaks
+
 
       - name: Run Gitleaks
         run: |
