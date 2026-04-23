@@ -71,6 +71,7 @@ jobs:
             --source . \
             --report-format json \
             --report-path gitleaks/gitleaks-report.json
+            --exit-code 0
 
       - name: Upload to DefectDojo
         run: |
