@@ -66,7 +66,7 @@ jobs:
           gitleaks detect \
           --source . \
           --report-format json \
-          --report-path gitleaks-results.sarif || true
+          --report-path gitleaks/gitleaks-report.json
 
       # Upload JSON report as artifact
       - name: Upload Gitleaks JSON report
