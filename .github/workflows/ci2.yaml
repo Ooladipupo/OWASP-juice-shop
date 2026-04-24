@@ -65,6 +65,10 @@ jobs:
         with:
           args: detect --source . --verbose --format json --report-path gitleaks-report.json
 
+      - name: Ensure report exists
+        run: touch gitleaks-report.json
+        if: always()
+
       - name: Upload Gitleaks report
         uses: actions/upload-artifact@v4
         with:
